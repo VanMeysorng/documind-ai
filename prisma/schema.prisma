@@ -12,16 +12,10 @@ model User {
   email         String    @unique
   name          String?
   passwordHash  String?
-  avatarUrl     String?
-  plan          String    @default("FREE")
-  storageLimit  BigInt    @default(5368709120)
-  storageUsed   BigInt    @default(0)
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
   
   documents     Document[]
-  folders       Folder[]
-  shares        Share[]
   
   @@index([email])
 }
@@ -30,92 +24,20 @@ model Document {
   id          String   @id @default(cuid())
   userId      String
   title       String
-  description String?
   type        String   @default("UPLOADED")
   fileUrl     String
   fileSize    BigInt
+  mimeType    String?
   pageCount   Int      @default(1)
-  mimeType    String
   isStarred   Boolean  @default(false)
   isArchived  Boolean  @default(false)
   ocrStatus   String   @default("NONE")
   aiProcessed Boolean  @default(false)
-  
-  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  pages       Page[]
-  metadata    AIMetadata?
-  signatures  Signature[]
-  shares      Share[]
-  
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   deletedAt   DateTime?
   
-  @@index([userId, createdAt])
-}
-
-model Page {
-  id          String  @id @default(cuid())
-  documentId  String
-  pageNumber  Int
-  imageUrl    String
-  textContent String?
-  
-  document    Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
-  
-  @@unique([documentId, pageNumber])
-}
-
-model AIMetadata {
-  id            String   @id @default(cuid())
-  documentId    String   @unique
-  summary       String?
-  extractedData Json?
-  tags          Json?
-  
-  document      Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
-  
-  createdAt     DateTime @default(now())
-}
-
-model Folder {
-  id          String   @id @default(cuid())
-  userId      String
-  name        String
-  parentId    String?
-  
   user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   
-  createdAt   DateTime @default(now())
-  
-  @@index([userId])
-}
-
-model Signature {
-  id          String   @id @default(cuid())
-  documentId  String
-  userId      String
-  pageNumber  Int
-  signatureData String
-  createdAt   DateTime @default(now())
-  
-  document    Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
-  user        User     @relation(fields: [userId], references: [id])
-  
-  @@index([documentId])
-}
-
-model Share {
-  id          String   @id @default(cuid())
-  documentId  String
-  sharedBy    String
-  sharedWith  String
-  permission  String   @default("VIEW")
-  createdAt   DateTime @default(now())
-  
-  document    Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
-  sharer      User     @relation("SharedBy", fields: [sharedBy], references: [id])
-  recipient   User     @relation("SharedWith", fields: [sharedWith], references: [id])
-  
-  @@index([documentId])
+  @@index([userId, createdAt])
 }
